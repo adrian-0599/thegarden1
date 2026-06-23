@@ -1,0 +1,14 @@
+{
+  "name": "the-garden",
+  "version": "1.0.0",
+  "description": "The Garden — immersive forest oasis dining experience",
+  "type": "module",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node server/index.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "multer": "^1.4.5-lts.1"
+  }
+}

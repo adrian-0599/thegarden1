@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0f1a14">
+  <title>The Garden · 森林绿洲</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Serif+SC:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="ambient-light ambient-light--top"></div>
+  <div class="ambient-light ambient-light--bottom"></div>
+  <div class="leaf-pattern" aria-hidden="true"></div>
+
+  <header class="brand-header">
+    <p class="brand-eyebrow">Immersive Dining Experience</p>
+    <h1 class="brand-title">The Garden</h1>
+    <p class="brand-tagline">在森林绿洲中，记录此刻</p>
+  </header>
+
+  <main class="experience">
+    <!-- Phase 1: Camera -->
+    <section class="phase phase--camera is-active" id="phaseCamera">
+      <div class="viewfinder" id="viewfinder">
+        <div class="viewfinder__frame">
+          <video id="video" autoplay playsinline muted></video>
+          <canvas id="captureCanvas" hidden></canvas>
+          <div class="viewfinder__corners" aria-hidden="true"></div>
+          <div class="viewfinder__hint">对准您想记录的画面</div>
+        </div>
+      </div>
+
+      <div class="camera-controls">
+        <button type="button" class="btn btn--ghost" id="switchCameraBtn" aria-label="切换摄像头">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M20 7h-3l-2-2H9L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+            <path d="M12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/>
+          </svg>
+          切换镜头
+        </button>
+        <button type="button" class="shutter-btn" id="captureBtn" aria-label="拍照">
+          <span class="shutter-btn__ring"></span>
+          <span class="shutter-btn__core"></span>
+        </button>
+        <div class="camera-controls__spacer"></div>
+      </div>
+    </section>
+
+    <!-- Phase 2: Processing -->
+    <section class="phase phase--processing" id="phaseProcessing">
+      <div class="processing-card">
+        <div class="processing-leaf"></div>
+        <p class="processing-text" id="processingText">正在感知画面内容…</p>
+        <div class="processing-bar"><div class="processing-bar__fill"></div></div>
+      </div>
+    </section>
+
+    <!-- Phase 3: Result + Survey -->
+    <section class="phase phase--result" id="phaseResult">
+      <div class="result-frame">
+        <canvas id="resultCanvas"></canvas>
+        <img id="resultImage" alt="The Garden AI 艺术图" hidden>
+      </div>
+
+      <div class="survey" id="survey">
+        <p class="survey__intro">请分享您的用餐感受</p>
+
+        <div class="survey__item">
+          <label class="survey__label">您今天的口味如何？</label>
+          <div class="survey__options" data-question="taste">
+            <button type="button" class="chip" data-value="清淡">清淡</button>
+            <button type="button" class="chip" data-value="适中">适中</button>
+            <button type="button" class="chip" data-value="浓郁">浓郁</button>
+          </div>
+        </div>
+
+        <div class="survey__item">
+          <label class="survey__label">您最喜欢哪道菜？</label>
+          <div class="survey__options" data-question="dish">
+            <button type="button" class="chip" data-value="森林沙拉">森林沙拉</button>
+            <button type="button" class="chip" data-value="慢烤羊排">慢烤羊排</button>
+            <button type="button" class="chip" data-value="蘑菇浓汤">蘑菇浓汤</button>
+            <button type="button" class="chip" data-value="时令甜品">时令甜品</button>
+          </div>
+        </div>
+
+        <div class="survey__item">
+          <label class="survey__label">您给本次体验打几分？</label>
+          <div class="survey__options" data-question="rating">
+            <button type="button" class="chip chip--score" data-value="5">5</button>
+            <button type="button" class="chip chip--score" data-value="4">4</button>
+            <button type="button" class="chip chip--score" data-value="3">3</button>
+            <button type="button" class="chip chip--score" data-value="2">2</button>
+            <button type="button" class="chip chip--score" data-value="1">1</button>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn--primary" id="completeSurveyBtn" disabled>生成专属纪念图</button>
+      </div>
+
+      <div class="final-actions" id="finalActions" hidden>
+        <p class="save-hint">长按图片保存，或点击下方按钮下载</p>
+        <button type="button" class="btn btn--primary btn--download" id="downloadBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M12 3v12m0 0l4-4m-4 4l-4-4"/>
+            <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
+          </svg>
+          保存到相册
+        </button>
+        <button type="button" class="btn btn--ghost" id="restartBtn">重新拍摄</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>The Garden</span>
+    <span class="site-footer__dot">·</span>
+    <span>Forest Oasis</span>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
