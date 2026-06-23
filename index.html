@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>花园·森林绿洲互动体验</title>
+    <style>
+        :root {
+            --bg-color: #0f1a14;
+            --text-color: #e2e8f0;
+            --accent-color: #4ade80;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        .container {
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 30px 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        h1 { font-size: 24px; margin-bottom: 10px; letter-spacing: 2px; color: #fff; }
+        p.subtitle { font-size: 14px; color: #a0aec0; margin-bottom: 30px; }
+        
+        .upload-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #2e7d32, #1b5e20);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+            margin-bottom: 20px;
+        }
+        .upload-btn:active { transform: scale(0.98); }
+        #fileInput { display: none; }
+
+        #loadingBox {
+            display: none;
+            margin-top: 20px;
+            color: var(--accent-color);
+            font-size: 14px;
+        }
+        
+        #posterWrapper {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        #finalPoster {
+            max-width: 100%;
+            max-height: 75vh;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-bottom: 25px;
+        }
+        .tip { color: #a0aec0; font-size: 14px; margin-bottom: 15px; }
+        .close-btn {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>The Garden</h1>
+        <p class="subtitle">在森林绿洲中，记录此刻</p >
+        
+        <label for="fileInput" class="upload-btn">📷 拍照 / 选择照片</label>
+        <input type="file" id="fileInput" accept="image/*">
+        
+        <p style="color: #718096; font-size: 12px;">提示：点击上方按钮拍照或从相册选择照片即可一键生成艺术海报</p >
+        
+        <div id="loadingBox">✨ 正在生成您的专属艺术海报，请稍候...</div>
+    </div>
+
+    <div id="posterWrapper">
+        < img id="finalPoster" src="" alt="最终海报">
+        <p class="tip">💡 长按图片即可保存到手机</p >
+        <button class="close-btn" onclick="closePoster()">返回</button>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const loadingBox = document.getElementById('loadingBox');
+        const posterWrapper = document.getElementById('posterWrapper');
+        const finalPoster = document.getElementById('finalPoster');
+
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            loadingBox.style.display = 'block';
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    generatePoster(img);
+                };
+                img.onerror = function() {
+                    alert('图片加载失败，请换一张试试');
+                    loadingBox.style.display = 'none';
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        function generatePoster(userImg) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 1080;
+            canvas.height = 1920;
+
+            ctx.fillStyle = "#0f1a14";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const borderPadding = 80;
+            const targetWidth = canvas.width - (borderPadding * 2);
+            const targetHeight = 1100; 
+            const targetX = borderPadding;
+            const targetY = 220;
+
+            let imgWidth = userImg.width;
+            let imgHeight = userImg.height;
+            let srcX = 0, srcY = 0, srcW = imgWidth, srcH = imgHeight;
+
+            const targetRatio = targetWidth / targetHeight;
+            const imgRatio = imgWidth / imgHeight;
+
+            if (imgRatio > targetRatio) {
+                srcW = imgHeight * targetRatio;
+                srcX = (imgWidth - srcW) / 2;
+            } else {
+                srcH = imgWidth / targetRatio;
+                srcY = (imgHeight - srcH) / 2;
+            }
+
+            try {
+                ctx.drawImage(userImg, srcX, srcY, srcW, srcH, targetX, targetY, targetWidth, targetHeight);
+
+                ctx.fillStyle = "#FFFFFF";
+                ctx.textAlign = "center";
+                
+                ctx.font = "bold 64px 'Times New Roman', serif";
+                ctx.fillText("T h e   G a r d e n", canvas.width / 2, 1450);
+
+                ctx.fillStyle = "#A0AEC0";
+                ctx.font = "32px 'PingFang SC', sans-serif";
+                ctx.fillText("—— 在 沉 浸 式 绿 洲 中，记 录 瞬 间 ——", canvas.width / 2, 1530);
+
+                ctx.fillStyle = "#4ADE80";
+                ctx.textAlign = "left";
+                ctx.font = "30px 'PingFang SC', sans-serif";
+                ctx.fillText("✦ 表格调研与纪念图保存已就绪", borderPadding, 1720);
+                
+                ctx.fillStyle = "#718096";
+                ctx.fillText("✦ 支持前后摄像头切换与智能图画识别", borderPadding, 1780);
+
+                finalPoster.src = canvas.toDataURL('image/jpeg', 0.9);
+                loadingBox.style.display = 'none';
+                posterWrapper.style.display = 'flex';
+            } catch (error) {
+                console.error(error);
+                alert('生成海报时发生错误，请重新尝试');
+                loadingBox.style.display = 'none';
+            }
+        }
+
+        function closePoster() {
+            posterWrapper.style.display = 'none';
+            fileInput.value = '';
+        }
+    </script>
+</body>
+</html>
