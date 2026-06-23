@@ -1,129 +1,233 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#0f1a14">
-  <title>The Garden · 森林绿洲</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Serif+SC:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>花园·森林绿洲互动体验</title>
+    <style>
+        :root {
+            --bg-color: #0f1a14;
+            --text-color: #e2e8f0;
+            --accent-color: #4ade80;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        .container {
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 30px 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        h1 { font-size: 24px; margin-bottom: 10px; letter-spacing: 2px; color: #fff; }
+        p.subtitle { font-size: 14px; color: #a0aec0; margin-bottom: 30px; }
+        
+        /* 隐藏原生上传按钮，用好看的标签代替 */
+        .upload-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #2e7d32, #1b5e20);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+            margin-bottom: 20px;
+        }
+        .upload-btn:active { transform: scale(0.98); }
+        #fileInput { display: none; }
+
+        #loadingBox {
+            display: none;
+            margin-top: 20px;
+            color: var(--accent-color);
+            font-size: 14px;
+        }
+        
+        /* 海报预览弹窗 */
+        #posterWrapper {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        #finalPoster {
+            max-width: 100%;
+            max-height: 75vh;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-bottom: 25px;
+        }
+        .tip { color: #a0aec0; font-size: 14px; margin-bottom: 15px; }
+        .close-btn {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
-  <div class="ambient-light ambient-light--top"></div>
-  <div class="ambient-light ambient-light--bottom"></div>
-  <div class="leaf-pattern" aria-hidden="true"></div>
 
-  <header class="brand-header">
-    <p class="brand-eyebrow">Immersive Dining Experience</p>
-    <h1 class="brand-title">The Garden</h1>
-    <p class="brand-tagline">在森林绿洲中，记录此刻</p>
-  </header>
+    <div class="container">
+        <h1>The Garden</h1>
+        <p class="subtitle">在森林绿洲中，记录此刻</p>
+        
+        <!-- 核心图片选择组件：支持拍照与相册 -->
+        <label for="fileInput" class="upload-btn">📷 拍照 / 选择照片</label>
+        <input type="file" id="fileInput" accept="image/*">
+        
+        <p style="color: #718096; font-size: 12px;">提示：点击上方按钮拍照或从相册选择照片即可一键生成艺术海报</p>
+        
+        <div id="loadingBox">✨ 正在生成您的专属艺术海报，请稍候...</div>
+    </div>
 
-  <main class="experience">
-    <!-- Phase 1: Camera -->
-    <section class="phase phase--camera is-active" id="phaseCamera">
-      <div class="viewfinder" id="viewfinder">
-        <div class="viewfinder__frame">
-          <video id="video" autoplay playsinline muted></video>
-          <canvas id="captureCanvas" hidden></canvas>
-          <div class="viewfinder__corners" aria-hidden="true"></div>
-          <div class="viewfinder__hint">对准您想记录的画面</div>
-        </div>
-      </div>
+    <!-- 结果展示层 -->
+    <div id="posterWrapper">
+        <img id="finalPoster" src="" alt="最终海报">
+        <p class="tip">💡 长按图片即可保存到手机或分享朋友圈</p>
+        <button class="close-btn" onclick="closePoster()">返回重新制作</button>
+    </div>
 
-      <div class="camera-controls">
-        <button type="button" class="btn btn--ghost" id="switchCameraBtn" aria-label="切换摄像头">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M20 7h-3l-2-2H9L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
-            <path d="M12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/>
-          </svg>
-          切换镜头
-        </button>
-        <button type="button" class="shutter-btn" id="captureBtn" aria-label="拍照">
-          <span class="shutter-btn__ring"></span>
-          <span class="shutter-btn__core"></span>
-        </button>
-        <div class="camera-controls__spacer"></div>
-      </div>
-    </section>
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const loadingBox = document.getElementById('loadingBox');
+        const posterWrapper = document.getElementById('posterWrapper');
+        const finalPoster = document.getElementById('finalPoster');
 
-    <!-- Phase 2: Processing -->
-    <section class="phase phase--processing" id="phaseProcessing">
-      <div class="processing-card">
-        <div class="processing-leaf"></div>
-        <p class="processing-text" id="processingText">正在感知画面内容…</p>
-        <div class="processing-bar"><div class="processing-bar__fill"></div></div>
-      </div>
-    </section>
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
 
-    <!-- Phase 3: Result + Survey -->
-    <section class="phase phase--result" id="phaseResult">
-      <div class="result-frame">
-        <canvas id="resultCanvas"></canvas>
-        <img id="resultImage" alt="The Garden AI 艺术图" hidden>
-      </div>
+            loadingBox.style.display = 'block';
 
-      <div class="survey" id="survey">
-        <p class="survey__intro">请分享您的用餐感受</p>
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    generatePoster(img);
+                };
+                img.onerror = function() {
+                    alert('图片加载失败，请换一张试试');
+                    loadingBox.style.display = 'none';
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
 
-        <div class="survey__item">
-          <label class="survey__label">您今天的口味如何？</label>
-          <div class="survey__options" data-question="taste">
-            <button type="button" class="chip" data-value="清淡">清淡</button>
-            <button type="button" class="chip" data-value="适中">适中</button>
-            <button type="button" class="chip" data-value="浓郁">浓郁</button>
-          </div>
-        </div>
+        function generatePoster(userImg) {
+            // 创建画布，固定海报比例 (1080 x 1920 高清标准)
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 1080;
+            canvas.height = 1920;
 
-        <div class="survey__item">
-          <label class="survey__label">您最喜欢哪道菜？</label>
-          <div class="survey__options" data-question="dish">
-            <button type="button" class="chip" data-value="森林沙拉">森林沙拉</button>
-            <button type="button" class="chip" data-value="慢烤羊排">慢烤羊排</button>
-            <button type="button" class="chip" data-value="蘑菇浓汤">蘑菇浓汤</button>
-            <button type="button" class="chip" data-value="时令甜品">时令甜品</button>
-          </div>
-        </div>
+            // 1. 绘制墨绿色背景
+            ctx.fillStyle = "#0f1a14";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        <div class="survey__item">
-          <label class="survey__label">您给本次体验打几分？</label>
-          <div class="survey__options" data-question="rating">
-            <button type="button" class="chip chip--score" data-value="5">5</button>
-            <button type="button" class="chip chip--score" data-value="4">4</button>
-            <button type="button" class="chip chip--score" data-value="3">3</button>
-            <button type="button" class="chip chip--score" data-value="2">2</button>
-            <button type="button" class="chip chip--score" data-value="1">1</button>
-          </div>
-        </div>
+            // 2. 计算并居中裁剪绘制用户上传的图像
+            const borderPadding = 80;
+            const targetWidth = canvas.width - (borderPadding * 2);
+            const targetHeight = 1100; // 图片占用的高度
+            const targetX = borderPadding;
+            const targetY = 220;
 
-        <button type="button" class="btn btn--primary" id="completeSurveyBtn" disabled>生成专属纪念图</button>
-      </div>
+            // 保持图片比例裁剪 (Cover 效果)
+            let imgWidth = userImg.width;
+            let imgHeight = userImg.height;
+            let srcX = 0, srcY = 0, srcW = imgWidth, srcH = imgHeight;
 
-      <div class="final-actions" id="finalActions" hidden>
-        <p class="save-hint">长按图片保存，或点击下方按钮下载</p>
-        <button type="button" class="btn btn--primary btn--download" id="downloadBtn">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M12 3v12m0 0l4-4m-4 4l-4-4"/>
-            <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
-          </svg>
-          保存到相册
-        </button>
-        <button type="button" class="btn btn--ghost" id="restartBtn">重新拍摄</button>
-      </div>
-    </section>
-  </main>
+            const targetRatio = targetWidth / targetHeight;
+            const imgRatio = imgWidth / imgHeight;
 
-  <footer class="site-footer">
-    <span>The Garden</span>
-    <span class="site-footer__dot">·</span>
-    <span>Forest Oasis</span>
-  </footer>
+            if (imgRatio > targetRatio) {
+                srcW = imgHeight * targetRatio;
+                srcX = (imgWidth - srcW) / 2;
+            } else {
+                srcH = imgWidth / targetRatio;
+                srcY = (imgHeight - srcH) / 2;
+            }
 
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
-  <script type="module" src="js/app.js"></script>
+            try {
+                // 绘制主图
+                ctx.drawImage(userImg, srcX, srcY, srcW, srcH, targetX, targetY, targetWidth, targetHeight);
+
+                // 3. 绘制文字排版
+                ctx.fillStyle = "#FFFFFF";
+                ctx.textAlign = "center";
+                
+                // 品牌大标题
+                ctx.font = "bold 64px 'Times New Roman', serif";
+                ctx.fillText("T h e   G a r d e n", canvas.width / 2, 1450);
+
+                // 副标题
+                ctx.fillStyle = "#A0AEC0";
+                ctx.font = "32px 'PingFang SC', sans-serif";
+                ctx.fillText("—— 在 沉 浸 式 绿 洲 中，记 录 瞬 间 ——", canvas.width / 2, 1530);
+
+                // 营销小字 (左对齐靠下)
+                ctx.fillStyle = "#4ADE80";
+                ctx.textAlign = "left";
+                ctx.font = "30px 'PingFang SC', sans-serif";
+                ctx.fillText("✦ 凭此海报到店，立享今日限定冷萃 9 折优惠", borderPadding, 1720);
+                
+                ctx.fillStyle = "#718096";
+                ctx.fillText("✦ 定制属于你的绿色生活美学", borderPadding, 1780);
+
+                // 4. 绘制底部右侧白底二维码占位
+                const qrSize = 140;
+                const qrX = canvas.width - borderPadding - qrSize;
+                const qrY = 1660;
+                ctx.fillStyle = "#FFFFFF";
+                ctx.fillRect(qrX, qrY, qrSize, qrSize);
+                
+                // 画二维码内部的小黑块模拟一下
+                ctx.fillStyle = "#0f1a14";
+                ctx.fillRect(qrX + 15, qrY + 15, qrSize - 30, qrSize - 30);
+                ctx.fillStyle = "#FFFFFF";
+                ctx.fillRect(qrX + 35, qrY + 35, qrSize - 70, qrSize - 70);
+
+                // 将 Canvas 转为图片展示
+                finalPoster.src = canvas.toDataURL('image/jpeg', 0.9);
+                
+                // 显示弹窗
+                loadingBox.style.display = 'none';
+                posterWrapper.style.display = 'flex';
+            } catch (error) {
+                console.error(error);
+                alert('生成海报时发生错误，请重新尝试');
+                loadingBox.style.display = 'none';
+            }
+        }
+
+        function closePoster() {
+            posterWrapper.style.display = 'none';
+            fileInput.value = ''; // 清空选择
+        }
+    </script>
 </body>
 </html>
